@@ -30,23 +30,35 @@
     </ul>
    </div>
   </div>
-  <script>
-    // Select the 3rd list item
-    var thirdItem = document.querySelectorAll('#items li')[2];
-    
-    // Apply green background color to the 3rd list item
-    thirdItem.style.backgroundColor = 'green';
-  
-    // Select all list items
-    var listItems = document.querySelectorAll('#items li');
-    
-    // Apply bold font to all list items
-    for (var i = 0; i < listItems.length; i++) {
-      listItems[i].style.fontWeight = 'bold';
-    }
-  </script>
-  
+<script>
+  // Get the <ul> element by its ID
+  var itemList = document.getElementById("items");
+
+  // Create a new <li> element
+  var newLi = document.createElement("li");
+
+  // Set the text content of the new <li> element
+  newLi.textContent = "New Item";
+
+  // Append the new <li> element to the <ul> element
+  itemList.appendChild(newLi);
+
+  // Edit elements using getElementsByClassName
+  var listItems = document.getElementsByClassName("list-group-item");
+
+  // Change the background color of all list items with the class name "list-group-item"
+  for (var i = 0; i < listItems.length; i++) {
+    listItems[i].style.backgroundColor = "yellow";
+  }
+
+  // Edit elements using getElementsByTagName
+  var h2Elements = document.getElementsByTagName("h2");
+
+  // Change the font color of all <h2> elements
+  for (var i = 0; i < h2Elements.length; i++) {
+    h2Elements[i].style.color = "blue";
+  }
+</script>
 
 </body>
 </html>
-
