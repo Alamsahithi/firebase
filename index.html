@@ -31,33 +31,24 @@
    </div>
   </div>
 <script>
-  // Get the <ul> element by its ID
-  var itemList = document.getElementById("items");
+  // Change the background color of the 2nd item to green
+var secondItem = document.querySelector("#items li:nth-child(2)");
+secondItem.style.backgroundColor = "green";
 
-  // Create a new <li> element
-  var newLi = document.createElement("li");
+// Make the 3rd item invisible
+var thirdItem = document.querySelector("#items li:nth-child(3)");
+thirdItem.style.display = "none";
 
-  // Set the text content of the new <li> element
-  newLi.textContent = "New Item";
+// Change the font color to green for the 2nd item in the item list
+var secondItemFont = document.querySelector("#items li:nth-child(2)");
+secondItemFont.style.color = "green";
 
-  // Append the new <li> element to the <ul> element
-  itemList.appendChild(newLi);
+// Change the background color to green for all odd elements in the item list
+var oddItems = document.querySelectorAll("#items li:nth-child(odd)");
+oddItems.forEach(function(item) {
+  item.style.backgroundColor = "green";
+});
 
-  // Edit elements using getElementsByClassName
-  var listItems = document.getElementsByClassName("list-group-item");
-
-  // Change the background color of all list items with the class name "list-group-item"
-  for (var i = 0; i < listItems.length; i++) {
-    listItems[i].style.backgroundColor = "yellow";
-  }
-
-  // Edit elements using getElementsByTagName
-  var h2Elements = document.getElementsByTagName("h2");
-
-  // Change the font color of all <h2> elements
-  for (var i = 0; i < h2Elements.length; i++) {
-    h2Elements[i].style.color = "blue";
-  }
 </script>
 
 </body>
