@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Booking Appointment App</title>
+  <style>
+    .delete-icon {
+      cursor: pointer;
+    }
+
+    .user {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .user-detail {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Booking Appointment App</h1>
+
+  <form id="booking-form">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required>
+    <br>
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
+    <br>
+    <label for="date">Date:</label>
+    <input type="date" id="date" required>
+    <br>
+    <button type="submit">Book Appointment</button>
+  </form>
+
+  <h2>Appointment List</h2>
+  <div id="appointment-list"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    // Function to create a new appointment
+    function createAppointment(event) {
+      event.preventDefault();
+
+      var nameInput = document.getElementById('name');
+      var emailInput = document.getElementById('email');
+      var dateInput = document.getElementById('date');
+
+      var appointment = {
+        name: nameInput.value,
+        email: emailInput.value,
+        date: dateInput.value
+      };
+
+      // Send a POST request to Crud Crud to create a new appointment
+      axios.post('https://crudcrud.com/api/YOUR_API_KEY/appointments', appointment)
+        .then(response => {
+          if (response.status === 201) {
+            // Clear the form fields
+            nameInput.value = '';
+            emailInput.value = '';
+            dateInput.value = '';
+
+            // Retrieve and display the updated appointment list
+            getAppointments();
+          } else {
+            throw new Error('Failed to create appointment');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Function to retrieve and display the appointment list
+    function getAppointments() {
+      // Send a GET request to Crud Crud to fetch the appointment list
+      axios.get('https://crudcrud.com/api/YOUR_API_KEY/appointments')
+        .then(response => {
+          var appointmentList = document.getElementById('appointment-list');
+          appointmentList.innerHTML = '';
+
+          if (response.status === 200) {
+            var appointments = response.data;
+
+            appointments.forEach(appointment => {
+              var userDiv = document.createElement('div');
+              userDiv.className = 'user';
+              userDiv.id = appointment._id;
+
+              var nameSpan = document.createElement('span');
+              nameSpan.className = 'user-detail';
+              nameSpan.textContent = 'Name: ' + appointment.name;
+
+              var emailSpan = document.createElement('span');
+              emailSpan.className = 'user-detail';
+              emailSpan.textContent = 'Email: ' + appointment.email;
+
+              var dateSpan = document.createElement('span');
+              dateSpan.className = 'user-detail';
+              dateSpan.textContent = 'Date: ' + appointment.date;
+
+              var deleteIcon = document.createElement('i');
+              deleteIcon.className = 'delete-icon';
+              deleteIcon.textContent = 'Delete';
+              deleteIcon.onclick = function() {
+                deleteAppointment(appointment._id);
+              };
+
+              userDiv.appendChild(nameSpan);
+              userDiv.appendChild(emailSpan);
+              userDiv.appendChild(dateSpan);
+              userDiv.appendChild(deleteIcon);
+
+              appointmentList.appendChild(userDiv);
+            });
+          } else {
+            throw new Error('Failed to fetch appointments');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Function to delete an appointment
+    function deleteAppointment(appointmentId) {
+      // Send a DELETE request to Crud Crud to delete the appointment
+      axios.delete('https://crudcrud.com/api/YOUR_API_KEY/appointments/' + appointmentId)
+        .then(response => {
+          if (response.status === 200) {
+            // Remove the appointment detail from the website on successful deletion
+            var appointmentElement = document.getElementById(appointmentId);
+            if (appointmentElement) {
+              appointmentElement.remove();
+            }
+          } else {
+            throw new Error('Failed to delete appointment');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Attach event listener to the form submit event
+    document.getElementById('booking-form').addEventListener('submit', createAppointment);
+
+    // Retrieve and display the appointment list when the DOM has loaded
+    document.addEventListener('DOMContentLoaded', getAppointments);
+  </script>
+</body>
+</html>
