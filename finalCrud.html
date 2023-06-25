@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Booking Appointment App</title>
+  <style>
+    .edit-icon,
+    .delete-icon {
+      cursor: pointer;
+    }
+
+    .user {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .user-detail {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Booking Appointment App</h1>
+
+  <form id="booking-form">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required>
+    <br>
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
+    <br>
+    <label for="date">Date:</label>
+    <input type="date" id="date" required>
+    <br>
+    <input type="hidden" id="appointment-id">
+    <button type="submit">Book Appointment</button>
+  </form>
+
+  <h2>Appointment List</h2>
+  <div id="appointment-list"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    // Global variable to store the currently selected appointment ID for editing
+    var selectedAppointmentId = null;
+
+    // Function to create or update an appointment
+    function saveAppointment(event) {
+      event.preventDefault();
+
+      var nameInput = document.getElementById('name');
+      var emailInput = document.getElementById('email');
+      var dateInput = document.getElementById('date');
+      var appointmentIdInput = document.getElementById('appointment-id');
+
+      var appointment = {
+        name: nameInput.value,
+        email: emailInput.value,
+        date: dateInput.value
+      };
+
+      // Determine whether it's a new appointment or an update based on the availability of the appointment ID
+      var isUpdate = appointmentIdInput.value !== '';
+
+      // Determine the appropriate endpoint URL for POST or PUT request
+      var url = isUpdate ? 'https://crudcrud.com/api/YOUR_API_KEY/appointments/' + appointmentIdInput.value : 'https://crudcrud.com/api/YOUR_API_KEY/appointments';
+
+      // Determine the appropriate request method for POST or PUT
+      var method = isUpdate ? 'PUT' : 'POST';
+
+      // Send a POST or PUT request to Crud Crud to create or update an appointment
+      axios({
+        method: method,
+        url: url,
+        data: appointment
+      })
+        .then(response => {
+          if (response.status === 200 || response.status === 201) {
+            // Clear the form fields
+            nameInput.value = '';
+            emailInput.value = '';
+            dateInput.value = '';
+            appointmentIdInput.value = '';
+
+            // Reset the selected appointment ID
+            selectedAppointmentId = null;
+
+            // Retrieve and display the updated appointment list
+            getAppointments();
+          } else {
+            throw new Error('Failed to save appointment');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Function to populate the form with the selected appointment details for editing
+    function editAppointment(appointmentId) {
+      // Find the appointment in the appointment list
+      var appointment = appointments.find(app => app._id === appointmentId);
+      if (appointment) {
+        // Populate the form with the appointment details
+        var nameInput = document.getElementById('name');
+        var emailInput = document.getElementById('email');
+        var dateInput = document.getElementById('date');
+        var appointmentIdInput = document.getElementById('appointment-id');
+
+        nameInput.value = appointment.name;
+        emailInput.value = appointment.email;
+        dateInput.value = appointment.date;
+        appointmentIdInput.value = appointmentId;
+
+        // Set the selected appointment ID for updating
+        selectedAppointmentId = appointmentId;
+      }
+    }
+
+    // Function to delete an appointment
+    function deleteAppointment(appointmentId) {
+      // Send a DELETE request to Crud Crud to delete the appointment
+      axios.delete('https://crudcrud.com/api/YOUR_API_KEY/appointments/' + appointmentId)
+        .then(response => {
+          if (response.status === 200) {
+            // Remove the appointment detail from the website on successful deletion
+            var appointmentElement = document.getElementById(appointmentId);
+            if (appointmentElement) {
+              appointmentElement.remove();
+            }
+          } else {
+            throw new Error('Failed to delete appointment');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Function to retrieve and display the appointment list
+    function getAppointments() {
+      // Send a GET request to Crud Crud to fetch the appointment list
+      axios.get('https://crudcrud.com/api/YOUR_API_KEY/appointments')
+        .then(response => {
+          var appointmentList = document.getElementById('appointment-list');
+          appointmentList.innerHTML = '';
+
+          if (response.status === 200) {
+            appointments = response.data;
+
+            appointments.forEach(appointment => {
+              var userDiv = document.createElement('div');
+              userDiv.className = 'user';
+              userDiv.id = appointment._id;
+
+              var nameSpan = document.createElement('span');
+              nameSpan.className = 'user-detail';
+              nameSpan.textContent = 'Name: ' + appointment.name;
+
+              var emailSpan = document.createElement('span');
+              emailSpan.className = 'user-detail';
+              emailSpan.textContent = 'Email: ' + appointment.email;
+
+              var dateSpan = document.createElement('span');
+              dateSpan.className = 'user-detail';
+              dateSpan.textContent = 'Date: ' + appointment.date;
+
+              var editIcon = document.createElement('i');
+              editIcon.className = 'edit-icon';
+              editIcon.textContent = 'Edit';
+              editIcon.onclick = function() {
+                editAppointment(appointment._id);
+              };
+
+              var deleteIcon = document.createElement('i');
+              deleteIcon.className = 'delete-icon';
+              deleteIcon.textContent = 'Delete';
+              deleteIcon.onclick = function() {
+                deleteAppointment(appointment._id);
+              };
+
+              userDiv.appendChild(nameSpan);
+              userDiv.appendChild(emailSpan);
+              userDiv.appendChild(dateSpan);
+              userDiv.appendChild(editIcon);
+              userDiv.appendChild(deleteIcon);
+
+              appointmentList.appendChild(userDiv);
+            });
+          } else {
+            throw new Error('Failed to fetch appointments');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Attach event listener to the form submit event
+    document.getElementById('booking-form').addEventListener('submit', saveAppointment);
+
+    // Retrieve and display the appointment list when the DOM has loaded
+    document.addEventListener('DOMContentLoaded', getAppointments);
+  </script>
+</body>
+</html>
