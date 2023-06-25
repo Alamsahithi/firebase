@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Details</title>
+  <!-- Add Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>User Details</h1>
+    <form id="userForm" class="mb-3">
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <div id="userList"></div>
+  </div>
+
+  <!-- Add Bootstrap JS and Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    var isEditing = false;
+    var editIndex = null;
+
+    // Function to add a new user or update an existing user
+    function saveUser(user) {
+      var existingUsers = localStorage.getItem('users');
+
+      if (existingUsers) {
+        existingUsers = JSON.parse(existingUsers);
+
+        if (isEditing && editIndex !== null) {
+          // If in edit mode, update the user details at the specified index
+          existingUsers[editIndex] = user;
+          isEditing = false;
+          editIndex = null;
+        } else {
+          // If not in edit mode, add the new user to the existing users array
+          existingUsers.push(user);
+        }
+      } else {
+        existingUsers = [user];
+      }
+
+      // Save user data using Axios
+      axios.post('https://crudcrud.com/api/13875824b5ea4616893325416edb59af/userInfo', existingUsers)
+        .then((response) => {
+          console.log(response);
+          displayUsers(existingUsers);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+
+    // Function to delete a user
+    function deleteUser(index) {
+      var existingUsers = localStorage.getItem('users');
+
+      if (existingUsers) {
+        existingUsers = JSON.parse(existingUsers);
+
+        existingUsers.splice(index, 1);
+
+        localStorage.setItem('users', JSON.stringify(existingUsers));
+        displayUsers(existingUsers);
+      }
+    }
+
+    // Function to populate form fields with user details for editing
+    function editUser(index) {
+      var existingUsers = localStorage.getItem('users');
+
+      if (existingUsers) {
+        existingUsers = JSON.parse(existingUsers);
+
+        var user = existingUsers[index];
+        document.getElementById('name').value = user.name;
+        document.getElementById('email').value = user.email;
+        document.getElementById('phone').value = user.phone;
+
+        isEditing = true;
+        editIndex = index;
+      }
+    }
+
+    // Function to display user details on the screen
+    function displayUsers(users) {
+      var userList = document.getElementById('userList');
+      userList.innerHTML = '';
+
+      for (var i = 0; i < users.length; i++) {
+        var user = users[i];
+
+        var userElement = document.createElement('div');
+        userElement.innerHTML = `
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">${user.name}</h5>
+              <p class="card-text">
+                <strong>Email:</strong> ${user.email}<br>
+                <strong>Phone:</strong> ${user.phone}
+              </p>
+              <button onclick="editUser(${i})" class="btn btn-primary">Edit</button>
+              <button onclick="deleteUser(${i})" class="btn btn-danger">Delete</button>
+            </div>
+          </div>
+        `;
+
+        userList.appendChild(userElement);
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('userForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var name = document.getElementById('name').value;
+      var email = document.getElementById('email').value;
+      var phone = document.getElementById('phone').value;
+
+      var newUser = {
+        name: name,
+        email: email,
+        phone: phone
+      };
+
+      var existingUsers = localStorage.getItem('users');
+      if (existingUsers) {
+        existingUsers = JSON.parse(existingUsers);
+      } else {
+        existingUsers = [];
+      }
+      
+      existingUsers.push(newUser);
+      localStorage.setItem('users', JSON.stringify(existingUsers));
+      displayUsers(existingUsers);
+      
+      document.getElementById('userForm').reset();
+    });
+
+    // Retrieve user data on DOMContentLoaded event
+    window.addEventListener("DOMContentLoaded", () => {
+      axios.get('https://crudcrud.com/api/13875824b5ea4616893325416edb59af/userInfo')
+        .then((response) => {
+          var existingUsers = response.data;
+          localStorage.setItem('users', JSON.stringify(existingUsers));
+          displayUsers(existingUsers);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  </script>
+</body>
+</html>
