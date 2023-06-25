@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Store Management App</title>
+  <style>
+    .edit-icon,
+    .delete-icon {
+      cursor: pointer;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .item-detail {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Store Management App</h1>
+
+  <form id="item-form">
+    <label for="name">Item Name:</label>
+    <input type="text" id="name" required>
+    <br>
+    <label for="cost">Cost:</label>
+    <input type="number" id="cost" required>
+    <br>
+    <label for="quantity">Quantity:</label>
+    <input type="number" id="quantity" required>
+    <br>
+    <input type="hidden" id="item-id">
+    <button type="submit">Add Item</button>
+  </form>
+
+  <h2>Item List</h2>
+  <div id="item-list"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    // Global variable to store the currently selected item ID for editing
+    var selectedItemID = null;
+
+    // Function to create or update an item
+    function saveItem(event) {
+      event.preventDefault();
+
+      var nameInput = document.getElementById('name');
+      var costInput = document.getElementById('cost');
+      var quantityInput = document.getElementById('quantity');
+      var itemIDInput = document.getElementById('item-id');
+
+      var item = {
+        name: nameInput.value,
+        cost: parseFloat(costInput.value),
+        quantity: parseInt(quantityInput.value)
+      };
+
+      // Determine whether it's a new item or an update based on the availability of the item ID
+      var isUpdate = itemIDInput.value !== '';
+
+      // Determine the appropriate endpoint URL for POST or PUT request
+      var url = isUpdate ? 'https://crudcrud.com/api/13875824b5ea4616893325416edb59af/storeItems/' + itemIDInput.value : 'https://crudcrud.com/api/13875824b5ea4616893325416edb59af/storeItems/';
+
+      // Determine the appropriate request method for POST or PUT
+      var method = isUpdate ? 'PUT' : 'POST';
+
+      // Send a POST or PUT request to Crud Crud to create or update an item
+      axios({
+        method: method,
+        url: url,
+        data: item
+      })
+        .then(response => {
+          if (response.status === 200 || response.status === 201) {
+            // Clear the form fields
+            nameInput.value = '';
+            costInput.value = '';
+            quantityInput.value = '';
+            itemIDInput.value = '';
+
+            // Reset the selected item ID
+            selectedItemID = null;
+
+            // Retrieve and display the updated item list
+            getItems();
+          } else {
+            throw new Error('Failed to save item');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Function to populate the form with the selected item details for editing
+    function editItem(itemID) {
+      // Find the item in the item list
+      var item = items.find(item => item._id === itemID);
+      if (item) {
+        // Populate the form with the item details
+        var nameInput = document.getElementById('name');
+        var costInput = document.getElementById('cost');
+        var quantityInput = document.getElementById('quantity');
+        var itemIDInput = document.getElementById('item-id');
+
+        nameInput.value = item.name;
+        costInput.value = item.cost;
+        quantityInput.value = item.quantity;
+        itemIDInput.value = itemID;
+
+        // Set the selected item ID for updating
+        selectedItemID = itemID;
+      }
+    }
+
+    // Function to delete an item
+    function deleteItem(itemID) {
+      // Send a DELETE request to Crud Crud to delete the item
+      axios.delete('https://crudcrud.com/api/13875824b5ea4616893325416edb59af/storeItems/' + itemID)
+        .then(response => {
+          if (response.status === 200) {
+            // Remove the item detail from the website on successful deletion
+            var itemElement = document.getElementById(itemID);
+            if (itemElement) {
+              itemElement.remove();
+            }
+          } else {
+            throw new Error('Failed to delete item');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Function to update the quantity of bought items and store the changes
+    function updateQuantity(itemID, itemsBought) {
+      // Find the item in the item list
+      var item = items.find(item => item._id === itemID);
+      if (item) {
+        var updatedQuantity = item.quantity - itemsBought;
+
+        // Send a PUT request to Crud Crud to update the quantity of the item
+        axios.put('https://crudcrud.com/api/13875824b5ea4616893325416edb59af/storeItems/' + itemID, {
+          quantity: updatedQuantity
+        })
+          .then(response => {
+            if (response.status === 200) {
+              // Retrieve and display the updated item list
+              getItems();
+            } else {
+              throw new Error('Failed to update quantity');
+            }
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      }
+    }
+
+    // Function to retrieve and display the item list
+    function getItems() {
+      // Send a GET request to Crud Crud to fetch the item list
+      axios.get('https://crudcrud.com/api/13875824b5ea4616893325416edb59af/storeItems/')
+        .then(response => {
+          var itemList = document.getElementById('item-list');
+          itemList.innerHTML = '';
+
+          if (response.status === 200) {
+            items = response.data;
+
+            items.forEach(item => {
+              var itemDiv = document.createElement('div');
+              itemDiv.className = 'item';
+              itemDiv.id = item._id;
+
+              var nameSpan = document.createElement('span');
+              nameSpan.className = 'item-detail';
+              nameSpan.textContent = 'Name: ' + item.name;
+
+              var costSpan = document.createElement('span');
+              costSpan.className = 'item-detail';
+              costSpan.textContent = 'Cost: ' + item.cost;
+
+              var quantitySpan = document.createElement('span');
+              quantitySpan.className = 'item-detail';
+              quantitySpan.textContent = 'Quantity: ' + item.quantity;
+
+              var editIcon = document.createElement('i');
+              editIcon.className = 'edit-icon';
+              editIcon.textContent = 'Edit';
+              editIcon.onclick = function() {
+                editItem(item._id);
+              };
+
+              var deleteIcon = document.createElement('i');
+              deleteIcon.className = 'delete-icon';
+              deleteIcon.textContent = 'Delete';
+              deleteIcon.onclick = function() {
+                deleteItem(item._id);
+              };
+
+              var itemsBoughtLabel = document.createElement('label');
+              itemsBoughtLabel.textContent = 'Items Bought: ';
+
+              var itemsBoughtInput = document.createElement('input');
+              itemsBoughtInput.type = 'number';
+              itemsBoughtInput.min = 0;
+              itemsBoughtInput.value = 0;
+
+              var updateButton = document.createElement('button');
+              updateButton.textContent = 'Update Quantity';
+              updateButton.onclick = function() {
+                updateQuantity(item._id, parseInt(itemsBoughtInput.value));
+              };
+
+              itemDiv.appendChild(nameSpan);
+              itemDiv.appendChild(costSpan);
+              itemDiv.appendChild(quantitySpan);
+              itemDiv.appendChild(editIcon);
+              itemDiv.appendChild(deleteIcon);
+              itemDiv.appendChild(itemsBoughtLabel);
+              itemDiv.appendChild(itemsBoughtInput);
+              itemDiv.appendChild(updateButton);
+
+              itemList.appendChild(itemDiv);
+            });
+          } else {
+            throw new Error('Failed to fetch items');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Initial load of the item list
+    getItems();
+
+    // Attach event listener to the item form
+    var itemForm = document.getElementById('item-form');
+    itemForm.addEventListener('submit', saveItem);
+  </script>
+</body>
+</html>
